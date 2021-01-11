@@ -1,0 +1,92 @@
+import sys
+
+from PyQt5 import uic
+from PyQt5.QtWidgets import QApplication, QMainWindow
+
+
+class MyWidget(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        uic.loadUi('calc.ui', self)
+        for btn in self.buttonGroup_digits.buttons():
+            btn.clicked.connect(self.addDigit)
+        for btn in self.buttonGroup_binary.buttons():
+            btn.clicked.connect(self.oper)
+        self.number = '0'
+        self.expr = ''
+        self.new = False
+        self.btn_eq.clicked.connect(self.eq)
+        self.btn_dot.clicked.connect(self.dot)
+        self.btn_clear.clicked.connect(self.clear)
+        self.btn_sqrt.clicked.connect(self.sqrt)
+        self.btn_fact.clicked.connect(self.fact)
+
+    def fact(self):
+        if '.' in self.number:
+            self.table.display('Error')
+        elif self.number == '0':
+            self.table.display('1')
+        elif int(self.number) < 0:
+            self.table.display('Error')
+        else:
+            end = 1
+            for i in range(1, int(self.number) + 1):
+                end *= i
+            self.number = str(end)
+            self.table.display(self.number)
+
+    def clear(self):
+        self.number = '0'
+        self.expr = ''
+        self.table.display(self.number)
+        self.new = True
+
+    def dot(self):
+        self.number += '.'
+        self.table.display(self.number)
+
+    def sqrt(self):
+        if eval(self.number) < 0:
+            self.table.display('Error')
+        else:
+            self.number = str(float(self.number) ** 0.5)
+            self.expr = ''
+            self.table.display(self.number)
+
+    def eq(self):
+        if self.expr != '':
+            self.expr = self.expr + ' ' + self.number
+            self.number = str(eval(self.expr))
+            self.expr = ''
+            self.new = True
+            self.table.display(self.number)
+
+    def oper(self):
+        if self.expr == '':
+            if self.sender().text() == '^':
+                self.expr = self.number + ' ' + '**'
+                self.new = True
+            else:
+                self.expr = self.number + ' ' + self.sender().text()
+                self.new = True
+        else:
+            self.expr = self.expr + ' ' + self.number
+            self.number = str(eval(self.expr))
+            self.expr = self.number + ' ' + self.sender().text()
+            self.table.display(self.number)
+            self.new = True
+
+    def addDigit(self):
+        if self.number == '0' or self.new is True:
+            self.number = self.sender().text()
+            self.new = False
+        else:
+            self.number += self.sender().text()
+        self.table.display(self.number)
+
+
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    ex = MyWidget()
+    ex.show()
+    sys.exit(app.exec_())
